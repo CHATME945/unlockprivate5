@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Private Video</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:Arial;overflow:hidden;}
+
+/* VIDEO */
+.bg-video{
+position:fixed;top:0;left:0;width:100%;height:100%;
+object-fit:cover;filter:blur(8px);z-index:-1;pointer-events:none;
+}
+
+/* OVERLAY */
+.overlay{
+position:fixed;width:100%;height:100%;
+background:rgba(0,0,0,0.6);
+}
+
+/* CONTENT */
+.container{
+position:relative;z-index:2;color:#fff;text-align:center;
+top:50%;transform:translateY(-50%);padding:20px;
+}
+
+/* VIEWERS */
+.viewer{
+font-size:12px;
+margin-bottom:10px;
+color:#00ffcc;
+}
+
+/* BUTTON */
+.btn-group{
+display:flex;flex-direction:column;gap:10px;margin-top:15px;
+}
+
+.btn{
+padding:14px;background:#ff0033;color:#fff;
+font-weight:bold;border-radius:10px;text-decoration:none;
+animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+0%{transform:scale(1);}
+50%{transform:scale(1.1);}
+100%{transform:scale(1);}
+}
+
+/* CHAT */
+.chat-box{
+margin-top:15px;max-width:320px;height:180px;
+overflow:hidden;margin-left:auto;margin-right:auto;
+display:flex;flex-direction:column;gap:8px;
+}
+
+.chat-left{display:flex;align-items:flex-start;}
+.chat-left img{width:28px;height:28px;border-radius:50%;margin-right:6px;}
+.bubble-left{
+background:rgba(255,255,255,0.15);
+padding:8px;border-radius:10px;font-size:12px;
+}
+
+.chat-right{display:flex;justify-content:flex-end;}
+.bubble-right{
+background:#ff0033;
+padding:8px;border-radius:10px;font-size:12px;
+}
+
+.typing{font-size:11px;opacity:0.7;text-align:left;}
+
+/* CALL POPUP */
+.call{
+position:fixed;
+top:20px;left:50%;
+transform:translateX(-50%);
+background:#111;
+padding:15px;
+border-radius:15px;
+color:white;
+display:none;
+z-index:99;
+box-shadow:0 0 20px rgba(0,0,0,0.8);
+}
+
+/* LOADING */
+.loader{
+margin:20px auto;
+border:5px solid #333;
+border-top:5px solid red;
+border-radius:50%;
+width:50px;height:50px;
+animation:spin 1s linear infinite;
+}
+@keyframes spin{100%{transform:rotate(360deg);}}
+
+.hidden{display:none;}
+</style>
+
+</head>
+<body>
+
+<video class="bg-video" autoplay muted loop playsinline>
+<source src="video.mp4" type="video/mp4">
+</video>
+
+<div class="overlay"></div>
+
+<!-- CALL -->
+<div class="call" id="callBox">📞 Incoming Call... Jake</div>
+
+<!-- STEP 1 -->
+<div class="container" id="step1">
+<div class="viewer" id="viewer">👀 132 watching now</div>
+
+<h1>Private Video 😈</h1>
+<p>This video is locked</p>
+
+<div class="btn-group">
+<a href="#" class="btn" onclick="unlock()">WATCH FULL VIDEO</a>
+<a href="#" class="btn" onclick="unlock()">OPEN NOW</a>
+</div>
+
+<div class="chat-box" id="chatBox"></div>
+<div class="typing" id="typingText"></div>
+</div>
+
+<!-- STEP 2 -->
+<div class="container hidden" id="step2">
+<h1>Unlocking...</h1>
+<div class="loader"></div>
+<p id="status">Connecting...</p>
+</div>
+
+<audio id="notif" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+
+<script>
+let chatBox=document.getElementById("chatBox");
+let typingText=document.getElementById("typingText");
+let sound=document.getElementById("notif");
+let viewer=document.getElementById("viewer");
+
+let users=["Jake","Chris","Alex"];
+let messages=[
+"yo this is crazy 😳",
+"bro you gotta see this",
+"is this real??",
+"nah this is wild 🔥"
+];
+
+// LIVE VIEWER
+let count=120;
+setInterval(()=>{
+count+=Math.floor(Math.random()*5)-2;
+if(count<100) count=110;
+viewer.innerText="👀 "+count+" watching now";
+},2000);
+
+// FAKE CALL
+setTimeout(()=>{
+let call=document.getElementById("callBox");
+call.style.display="block";
+navigator.vibrate && navigator.vibrate([300,200,300]);
+setTimeout(()=>{call.style.display="none";},4000);
+},5000);
+
+// CHAT
+function addChat(){
+let user=users[Math.floor(Math.random()*users.length)];
+let msg=messages[Math.floor(Math.random()*messages.length)];
+
+typingText.innerText=user+" is typing...";
+
+setTimeout(()=>{
+typingText.innerText="";
+
+let div=document.createElement("div");
+
+if(Math.random()>0.5){
+div.className="chat-left";
+div.innerHTML=`<img src="https://i.pravatar.cc/40"><div class="bubble-left">${msg}</div>`;
+}else{
+div.className="chat-right";
+div.innerHTML=`<div class="bubble-right">${msg}</div>`;
+}
+
+chatBox.appendChild(div);
+chatBox.scrollTop=chatBox.scrollHeight;
+
+if(chatBox.children.length>6){
+chatBox.removeChild(chatBox.firstChild);
+}
+
+sound.play();
+
+setTimeout(addChat,Math.random()*2000+1000);
+
+},1200);
+}
+
+setTimeout(addChat,1000);
+
+// UNLOCK
+function unlock(){
+document.getElementById("step1").style.display="none";
+document.getElementById("step2").style.display="block";
+
+let msgs=["Verifying...","Loading video...","Almost ready..."];
+let i=0;
+let status=document.getElementById("status");
+
+let interval=setInterval(()=>{
+if(i<msgs.length){
+status.innerText=msgs[i];
+i++;
+}
+},1000);
+
+setTimeout(()=>{
+window.location.href="https://hannah-894920.affnet.sbs/w/z0rx078GfOAsL";
+},4000);
+}
+</script>
+
+</body>
+</html>
